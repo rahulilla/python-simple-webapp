@@ -1,0 +1,81 @@
+name: health check
+
+# Runs the app's tests AND probes a live /health endpoint on every PR + push to main.
+# This is the workflow that validates a PR's changes still keep the app alive
+# after the multi-agent reviewer (in a separate repo) suggests fixes.
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+
+jobs:
+  test-and-probe:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: "pip"
+          cache-dependency-path: requirements.txt
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+
+      - name: Run pytest
+        run: pytest -q tests
+
+      - name: Boot the app
+        # Run in the background; redirect logs so failures leave a trail.
+        run: |
+          nohup python app.py > webapp.log 2>&1 &
+          echo $! > webapp.pid
+          # Wait for the port to come up (max ~15s) before probing.
+          for i in $(seq 1 30); do
+            if curl -fsS http://127.0.0.1:8000/health > /dev/null; then
+              echo "app is up after ${i} attempts"
+              exit 0
+            fi
+            sleep 0.5
+          done
+          echo "app failed to come up; recent log:"
+          tail -n 50 webapp.log || true
+          exit 1
+
+      - name: Probe /health and assert 200 + status=ok
+        run: |
+          http_code=$(curl -s -o response.json -w "%{http_code}" http://127.0.0.1:8000/health)
+          echo "HTTP $http_code"
+          cat response.json
+          test "$http_code" = "200"
+          python - <<'PY'
+          import json
+          body = json.load(open("response.json"))
+          assert body.get("status") == "ok", f"unexpected status: {body}"
+          for key in ("version", "uptime_seconds"):
+              assert key in body, f"missing key {key}"
+          print("health payload OK:", body)
+          PY
+
+      - name: Stop the app
+        if: always()
+        run: |
+          if [ -f webapp.pid ]; then
+            kill "$(cat webapp.pid)" 2>/dev/null || true
+          fi
+
+      - name: Upload app log on failure
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: webapp-log
+          path: webapp.log
+          if-no-files-found: ignore

@@ -1,0 +1,17 @@
+# Python
+__pycache__/
+*.py[cod]
+.pytest_cache/
+*.egg-info/
+.venv/
+venv/
+
+# CI artifacts (in case anyone runs the workflow steps locally)
+webapp.log
+webapp.pid
+response.json
+
+# OS / editor
+.DS_Store
+.idea/
+.vscode/
