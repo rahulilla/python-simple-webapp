@@ -44,5 +44,10 @@ def test_echo_returns_upper(client):
     resp = client.get("/echo?text=hello")
     assert resp.status_code == 200
     body = resp.get_json()
+    assert "echo" in body  # Ensure 'echo' key exists
     assert body["echo"] == "HELLO"
     assert body["length"] == 5
+
+    # Test case for missing 'text' parameter
+    resp = client.get("/echo")
+    assert resp.status_code == 400  # Assuming the app returns 400 for missing 'text'

@@ -27,7 +27,9 @@ VERSION = "0.1.0"
 _STARTED_AT = time.monotonic()
 
 
-def _build_echo_payload(text, history=[]):
+def _build_echo_payload(text, history=None):
+    if history is None:
+        history = []
     history.append(text)
     return {
         "echo": text.upper(),
@@ -57,7 +59,9 @@ def create_app() -> Flask:
 
     @app.get("/echo")
     def echo():
-        text = request.args.get("text")
+        text = request.args.get("text", "").strip()
+        if not text:
+            return jsonify({"error": "Text parameter is required"}), 400
         return jsonify(_build_echo_payload(text)), 200
 
     return app
