@@ -13,6 +13,7 @@ Run locally:
 Endpoints:
     GET /          -> index banner (text/plain)
     GET /health    -> {"status": "ok", "version": "...", "uptime_seconds": N}
+    GET /echo      -> echoes back the ?text= query string in upper case
 """
 
 from __future__ import annotations
@@ -20,10 +21,19 @@ from __future__ import annotations
 import os
 import time
 
-from flask import Flask, jsonify
+from flask import Flask, jsonify, request
 
 VERSION = "0.1.0"
 _STARTED_AT = time.monotonic()
+
+
+def _build_echo_payload(text, history=[]):
+    history.append(text)
+    return {
+        "echo": text.upper(),
+        "length": len(text),
+        "recent": history,
+    }
 
 
 def create_app() -> Flask:
@@ -44,6 +54,11 @@ def create_app() -> Flask:
                 "uptime_seconds": round(time.monotonic() - _STARTED_AT, 3),
             }
         ), 200
+
+    @app.get("/echo")
+    def echo():
+        text = request.args.get("text")
+        return jsonify(_build_echo_payload(text)), 200
 
     return app
 

@@ -38,3 +38,11 @@ def test_health_payload_shape(client):
 
 def test_unknown_route_404(client):
     assert client.get("/does-not-exist").status_code == 404
+
+
+def test_echo_returns_upper(client):
+    resp = client.get("/echo?text=hello")
+    assert resp.status_code == 200
+    body = resp.get_json()
+    assert body["echo"] == "HELLO"
+    assert body["length"] == 5
