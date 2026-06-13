@@ -22,7 +22,7 @@ import time
 
 from flask import Flask, jsonify
 
-VERSION = "0.1.0"
+VERSION = "0.1.1"
 _STARTED_AT = time.monotonic()
 
 
