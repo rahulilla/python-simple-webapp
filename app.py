@@ -19,12 +19,17 @@ from __future__ import annotations
 
 import os
 import time
+import logging
 
 from flask import Flask, jsonify
+from psycopg2 import DatabaseError
 
 VERSION = "0.1.0"
 _STARTED_AT = time.monotonic()
 
+# Configure logging
+logging.basicConfig(level=logging.INFO)
+logger = logging.getLogger(__name__)
 
 def create_app() -> Flask:
     """Application factory — keeps the app testable with `app.test_client()`."""
@@ -51,14 +56,17 @@ def create_app() -> Flask:
 
 def lookup_user(db_conn, username: str):
     """Look up a user in the database by username."""
+    if not username:
+        logger.warning("Empty username provided.")
+        return None
+
     try:
         with db_conn.cursor() as cursor:
             query = "SELECT * FROM users WHERE username = %s"
             cursor.execute(query, (username,))
             return cursor.fetchall()
-    except Exception as e:
-        # Handle specific exceptions as needed
-        print(f"An error occurred: {e}")
+    except DatabaseError as e:
+        logger.error("Database error occurred: %s", e)
         return None
 
 
