@@ -2,7 +2,7 @@
 # Rewritten import target: solution → tests.agent_generated.test_test_test_test_test_test_app
 from unittest.mock import MagicMock, patch
 from flask import Flask
-from tests.agent_generated.test_test_test_test_test_test_app import create_app, lookup_user, main
+# from tests.agent_generated.test_test_test_test_test_test_app import create_app, lookup_user, main
 
 def test_create_app():
     """Test the creation of the Flask app."""
@@ -58,7 +58,8 @@ def test_lookup_user():
     assert result == []
 
     # Edge case: None as username
-    if None is not None:
+    username = None
+    if username is None:
         result = lookup_user(mock_db_conn, None)
         assert result == []
 

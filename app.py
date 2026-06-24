@@ -89,7 +89,11 @@ def main() -> None:
         logging.warning("PORT environment variable not set, using default port 8000 for local development.")
         port = 8000
     else:
-        port = int(port)
+        try:
+            port = int(port)
+        except ValueError:
+            logging.error("Invalid PORT environment variable value, using default port 8000.")
+            port = 8000
     # host=0.0.0.0 so the GitHub Actions runner can curl it; debug stays off.
     app.run(host="0.0.0.0", port=port, debug=False)
 
