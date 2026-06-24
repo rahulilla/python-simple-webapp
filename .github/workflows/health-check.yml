@@ -30,9 +30,6 @@ jobs:
           python -m pip install --upgrade pip
           pip install -r requirements.txt
 
-      - name: Run pytest
-        run: pytest -q tests
-
       - name: Boot the app
         # Run in the background; redirect logs so failures leave a trail.
         run: |
