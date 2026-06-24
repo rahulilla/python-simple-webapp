@@ -51,6 +51,7 @@ def test_lookup_user():
 def test_main():
     """Test the main function to ensure it runs the app with the correct parameters."""
     with patch('app.run') as mock_run:
-        with patch('os.environ.get', return_value='8000'):
+        with patch('os.environ.get') as mock_get:
+            mock_get.side_effect = lambda key, default=None: {'PORT': '8000'}.get(key, default)
             main()
             mock_run.assert_called_once_with(host="0.0.0.0", port=8000, debug=False)

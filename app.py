@@ -67,7 +67,7 @@ def lookup_user(db_conn, username: str):
             return cursor.fetchall()
     except DatabaseError as e:
         logger.error("Database error occurred: %s", e)
-        return None
+        raise  # Re-raise the exception to ensure it is not silently ignored
 
 
 # Module-level instance so `flask --app app run` works too.
