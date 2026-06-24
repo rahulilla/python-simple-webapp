@@ -25,7 +25,11 @@ import logging
 from flask import Flask, jsonify
 from psycopg2 import DatabaseError
 
-VERSION = os.environ.get("APP_VERSION", "0.1.0")
+VERSION = os.environ.get("APP_VERSION")
+if not VERSION:
+    VERSION = "unknown-version"
+    logging.warning("APP_VERSION environment variable not set, using default version: %s", VERSION)
+
 _STARTED_AT = time.monotonic()
 
 # Configure logging
@@ -74,18 +78,18 @@ def lookup_user(db_conn, username: str):
     except DatabaseError as e:
         logger.error("Database error occurred: %s", e)
         raise  # Re-raise the exception to ensure it is not silently ignored
-
+    finally:
+        db_conn.close()
+        logger.info("Database connection closed.")
 
 # Module-level instance so `flask --app app run` works too.
 app = create_app()
-
 
 def main() -> None:
     """Run the Flask application."""
     port = int(os.environ.get("PORT", "8000"))
     # host=0.0.0.0 so the GitHub Actions runner can curl it; debug stays off.
     app.run(host="0.0.0.0", port=port, debug=False)
-
 
 if __name__ == "__main__":
     main()
