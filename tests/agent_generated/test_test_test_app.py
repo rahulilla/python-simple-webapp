@@ -30,8 +30,9 @@ def test_health_route():
 
 def test_lookup_user():
     """Test the lookup_user function with various cases."""
-    with MagicMock() as mock_db_conn:
-        mock_cursor = mock_db_conn.cursor.return_value
+    with patch('tests.agent_generated.test_test_app.db_connection') as mock_db_conn:
+        mock_cursor = MagicMock()
+        mock_db_conn.cursor.return_value = mock_cursor
         mock_cursor.fetchall.return_value = [{'id': 1, 'username': 'testuser'}]
 
         # Normal behavior

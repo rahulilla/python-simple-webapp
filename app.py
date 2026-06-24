@@ -78,16 +78,18 @@ def lookup_user(db_conn, username: str):
     except DatabaseError as e:
         logger.error("Database error occurred: %s", e)
         raise  # Re-raise the exception to ensure it is not silently ignored
-    finally:
-        db_conn.close()
-        logger.info("Database connection closed.")
 
 # Module-level instance so `flask --app app run` works too.
 app = create_app()
 
 def main() -> None:
     """Run the Flask application."""
-    port = int(os.environ.get("PORT", "8000"))
+    port = os.environ.get("PORT")
+    if port is None:
+        logging.warning("PORT environment variable not set, using default port 8000 for local development.")
+        port = 8000
+    else:
+        port = int(port)
     # host=0.0.0.0 so the GitHub Actions runner can curl it; debug stays off.
     app.run(host="0.0.0.0", port=port, debug=False)
 

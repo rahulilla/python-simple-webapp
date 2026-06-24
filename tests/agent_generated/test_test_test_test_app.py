@@ -30,7 +30,8 @@ def test_health_route():
 
 def test_lookup_user():
     """Test the lookup_user function with various cases."""
-    with MagicMock() as mock_db_conn:
+    with patch('tests.agent_generated.test_test_test_app.lookup_user') as mock_lookup_user:
+        mock_db_conn = MagicMock()
         mock_cursor = mock_db_conn.cursor.return_value
         mock_cursor.fetchall.return_value = [{'id': 1, 'username': 'testuser'}]
 
@@ -44,10 +45,9 @@ def test_lookup_user():
         # Edge case: empty username
         mock_cursor.fetchall.return_value = []
         result = lookup_user(mock_db_conn, '')
-        if result is not None:
-            mock_cursor.execute.assert_called_with(
-                "SELECT * FROM users WHERE username = %s", ('',)
-            )
+        mock_cursor.execute.assert_called_with(
+            "SELECT * FROM users WHERE username = %s", ('',)
+        )
         assert result == []
 
         # Edge case: non-existent user
