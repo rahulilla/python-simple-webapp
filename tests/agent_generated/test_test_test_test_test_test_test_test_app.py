@@ -60,7 +60,7 @@ def test_lookup_user():
     # Edge case: None as username
     mock_cursor.fetchall.return_value = []
     result = lookup_user(mock_db_conn, None)
-    if None is not None:
+    if result is not None:
         mock_cursor.execute.assert_called_with(
             "SELECT * FROM users WHERE username = %s", (None,)
         )

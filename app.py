@@ -27,8 +27,7 @@ from psycopg2 import DatabaseError
 
 VERSION = os.environ.get("APP_VERSION")
 if not VERSION:
-    VERSION = "unknown-version"
-    logging.warning("APP_VERSION environment variable not set, using default version: %s", VERSION)
+    logging.warning("APP_VERSION environment variable not set.")
 
 _STARTED_AT = time.monotonic()
 
@@ -68,7 +67,7 @@ def lookup_user(db_conn, username: str):
     """
     if not username:
         logger.warning("Empty username provided.")
-        return None
+        return []
 
     try:
         with db_conn.cursor() as cursor:
@@ -78,6 +77,8 @@ def lookup_user(db_conn, username: str):
     except DatabaseError as e:
         logger.error("Database error occurred: %s", e)
         raise  # Re-raise the exception to ensure it is not silently ignored
+    finally:
+        db_conn.close()
 
 # Module-level instance so `flask --app app run` works too.
 app = create_app()

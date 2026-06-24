@@ -26,9 +26,6 @@ def lookup_user(db_conn, username):
     if not username:
         return []
 
-    if not hasattr(db_conn, 'cursor'):
-        raise AttributeError("The provided db_conn object does not have a 'cursor' method.")
-
     with db_conn.cursor() as cursor:
         cursor.execute("SELECT * FROM users WHERE username = %s", (username,))
         return cursor.fetchall()
@@ -79,10 +76,7 @@ def test_lookup_user():
     # Edge case: empty username
     mock_cursor.fetchall.return_value = []
     result = lookup_user(mock_db_conn, '')
-    if result is not None:
-        mock_cursor.execute.assert_called_with(
-            "SELECT * FROM users WHERE username = %s", ('',)
-        )
+    mock_cursor.execute.assert_not_called()
     assert result == []
 
     # Edge case: non-existent user

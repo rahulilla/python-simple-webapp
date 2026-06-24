@@ -1,10 +1,10 @@
-import pytest
 from unittest.mock import MagicMock, patch
+import pytest
 from app import create_app, lookup_user, main
 from psycopg2 import DatabaseError
 
 @pytest.fixture
-def flask_app():
+def flask_app_fixture():
     """Fixture to create a Flask app for testing."""
     app = create_app()
     app.config.update({
@@ -13,9 +13,9 @@ def flask_app():
     return app
 
 @pytest.fixture
-def test_client(flask_app):
+def test_client(flask_app_fixture):
     """Fixture to create a test client for the Flask app."""
-    return flask_app.test_client()
+    return flask_app_fixture.test_client()
 
 def test_create_app(test_client):
     """Test the create_app function and its endpoints."""
@@ -35,12 +35,12 @@ def test_create_app(test_client):
 def test_lookup_user_valid_user():
     """Test lookup_user with a valid username."""
     mock_db_conn = MagicMock()
-    mock_cursor = mock_db_conn.cursor.return_value.__enter__.return_value
-    mock_cursor.fetchall.return_value = [{'username': 'testuser'}]
+    with mock_db_conn.cursor() as mock_cursor:
+        mock_cursor.fetchall.return_value = [{'username': 'testuser'}]
 
-    result = lookup_user(mock_db_conn, 'testuser')
-    mock_cursor.execute.assert_called_once_with("SELECT * FROM users WHERE username = %s", ('testuser',))
-    assert result == [{'username': 'testuser'}]
+        result = lookup_user(mock_db_conn, 'testuser')
+        mock_cursor.execute.assert_called_once_with("SELECT * FROM users WHERE username = %s", ('testuser',))
+        assert result == [{'username': 'testuser'}]
 
 def test_lookup_user_empty_username():
     """Test lookup_user with an empty username."""
