@@ -31,37 +31,34 @@ def test_health_route():
 def test_lookup_user():
     """Test the lookup_user function with various cases."""
     mock_db_conn = MagicMock()
-    mock_cursor = mock_db_conn.cursor.return_value.__enter__.return_value
-    mock_cursor.fetchall.return_value = [{'id': 1, 'username': 'testuser'}]
+    mock_cursor = mock_db_conn.cursor.return_value
 
     # Normal behavior
-    mock_db_conn.__enter__()
-    result = lookup_user(mock_db_conn, 'testuser')
-    mock_cursor.execute.assert_called_once_with(
-        "SELECT * FROM users WHERE username = %s", ('testuser',)
-    )
-    assert result == [{'id': 1, 'username': 'testuser'}]
-    mock_db_conn.__exit__(None, None, None)
+    with mock_db_conn:
+        mock_cursor.fetchall.return_value = [{'id': 1, 'username': 'testuser'}]
+        result = lookup_user(mock_db_conn, 'testuser')
+        mock_cursor.execute.assert_called_once_with(
+            "SELECT * FROM users WHERE username = %s", ('testuser',)
+        )
+        assert result == [{'id': 1, 'username': 'testuser'}]
 
     # Edge case: empty username
-    mock_cursor.fetchall.return_value = []
-    mock_db_conn.__enter__()
-    result = lookup_user(mock_db_conn, '')
-    mock_cursor.execute.assert_called_with(
-        "SELECT * FROM users WHERE username = %s", ('',)
-    )
-    assert result == []
-    mock_db_conn.__exit__(None, None, None)
+    with mock_db_conn:
+        mock_cursor.fetchall.return_value = []
+        result = lookup_user(mock_db_conn, '')
+        mock_cursor.execute.assert_called_with(
+            "SELECT * FROM users WHERE username = %s", ('',)
+        )
+        assert result == []
 
     # Edge case: non-existent user
-    mock_cursor.fetchall.return_value = []
-    mock_db_conn.__enter__()
-    result = lookup_user(mock_db_conn, 'nonexistentuser')
-    mock_cursor.execute.assert_called_with(
-        "SELECT * FROM users WHERE username = %s", ('nonexistentuser',)
-    )
-    assert result == []
-    mock_db_conn.__exit__(None, None, None)
+    with mock_db_conn:
+        mock_cursor.fetchall.return_value = []
+        result = lookup_user(mock_db_conn, 'nonexistentuser')
+        mock_cursor.execute.assert_called_with(
+            "SELECT * FROM users WHERE username = %s", ('nonexistentuser',)
+        )
+        assert result == []
 
 def test_main():
     """Test the main function to ensure it runs the app with the correct parameters."""
