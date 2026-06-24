@@ -21,6 +21,7 @@ import os
 import time
 import logging
 
+# Ensure these packages are installed via requirements.txt
 from flask import Flask, jsonify
 from psycopg2 import DatabaseError
 
@@ -55,7 +56,12 @@ def create_app() -> Flask:
     return application
 
 def lookup_user(db_conn, username: str):
-    """Look up a user in the database by username."""
+    """
+    Look up a user in the database by username.
+
+    Note: The caller is responsible for managing the lifecycle of the db_conn
+    connection, including closing it when done.
+    """
     if not username:
         logger.warning("Empty username provided.")
         return None
