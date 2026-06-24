@@ -48,13 +48,18 @@ def create_app() -> Flask:
         ), 200
 
     return application
-    
+
 def lookup_user(db_conn, username: str):
     """Look up a user in the database by username."""
-    with db_conn.cursor() as cursor:
-        query = "SELECT * FROM users WHERE username = %s"
-        cursor.execute(query, (username,))
-        return cursor.fetchall()
+    try:
+        with db_conn.cursor() as cursor:
+            query = "SELECT * FROM users WHERE username = %s"
+            cursor.execute(query, (username,))
+            return cursor.fetchall()
+    except Exception as e:
+        # Handle specific exceptions as needed
+        print(f"An error occurred: {e}")
+        return None
 
 
 # Module-level instance so `flask --app app run` works too.
