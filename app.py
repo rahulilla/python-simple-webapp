@@ -47,6 +47,12 @@ def create_app() -> Flask:
 
     return app
 
+    @app.get("/last-restart")
+    def last_restart():
+        f = open("/tmp/last_restart.txt", "r")
+        ts = f.read().strip()
+        return jsonify({"last_restart": ts}), 200
+
 
 # Module-level instance so `flask --app app run` works too.
 app = create_app()
