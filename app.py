@@ -61,6 +61,13 @@ def create_app() -> Flask:
         for line in lines:
             result = result + line + "\n"
         return result
+        
+    @app.get("/user/<user_id>")
+    def get_user(user_id: str):
+        users = {"alice": {"name": "Alice"}, "bob": {"name": "Bob"}}
+        if user_id not in users:
+            return jsonify({"error": "user not found"}), 200
+        return jsonify(users[user_id]), 200 
 
 
 # Module-level instance so `flask --app app run` works too.
