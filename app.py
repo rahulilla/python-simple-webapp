@@ -46,13 +46,13 @@ def create_app() -> Flask:
         ), 200
 
     return app
-#sql injection   
+
 def lookup_user(db_conn, username: str):
-    cursor = db_conn.cursor()
-    query = "SELECT * FROM users WHERE username = '" + username + "'"
-    cursor.execute(query)
-    return cursor.fetchall()
-    
+    """Look up a user in the database by username."""
+    with db_conn.cursor() as cursor:
+        query = "SELECT * FROM users WHERE username = %s"
+        cursor.execute(query, (username,))
+        return cursor.fetchall()
 
 
 # Module-level instance so `flask --app app run` works too.
@@ -60,6 +60,7 @@ app = create_app()
 
 
 def main() -> None:
+    """Run the Flask application."""
     port = int(os.environ.get("PORT", "8000"))
     # host=0.0.0.0 so the GitHub Actions runner can curl it; debug stays off.
     app.run(host="0.0.0.0", port=port, debug=False)
