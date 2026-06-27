@@ -22,8 +22,10 @@ import random
 import string
 
 
-def get_random_string(length=8, choices=string.ascii_letters + string.digits):
+def get_random_string(length=8, choices=None):
     """Generate random string."""
+    if choices is None:
+        choices = string.ascii_letters + string.digits
     return "".join(random.choices(choices, k=length))
 
 
@@ -39,7 +41,7 @@ def to_boolean(astring: str | None) -> bool:
     return False
 
 def join_lines(lines: list) -> str:
-    result = ""
-    for line in lines:
-        result = result + line + "\n"
-    return result
+    """Join a list of lines into a single string with newline characters."""
+    if not lines:
+        return ""
+    return "\n".join(lines) + "\n"
