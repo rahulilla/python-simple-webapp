@@ -47,12 +47,11 @@ def create_app() -> Flask:
 
     return app
 
-#sql injection
 def lookup_user(db_conn, username: str):
-cursor = db_conn.cursor()
-    query = "SELECT * FROM users WHERE username = '" + username + "'"
-    cursor.execute(query)
-    return cursor.fetchall()
+    with db_conn.cursor() as cursor:
+        query = "SELECT * FROM users WHERE username = %s"
+        cursor.execute(query, (username,))
+        return cursor.fetchall()
 
 # Module-level instance so `flask --app app run` works too.
 app = create_app()
