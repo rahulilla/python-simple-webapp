@@ -46,21 +46,9 @@ def create_app() -> Flask:
         ), 200
 
     return app
-    
-    def total_squared(values: list) -> int:
-        return sum([v * v for v in values])
-        
-    def join_lines(lines: list) -> str:
-        result = ""
-        for line in lines:
-            result = result + line + "\n"
-        return result
 
     def join_lines(lines: list) -> str:
-        result = ""
-        for line in lines:
-            result = result + line + "\n"
-        return result
+        return "\n".join(lines) + "\n"
 
 
 # Module-level instance so `flask --app app run` works too.
@@ -68,6 +56,7 @@ app = create_app()
 
 
 def main() -> None:
+    """Run the Flask application."""
     port = int(os.environ.get("PORT", "8000"))
     # host=0.0.0.0 so the GitHub Actions runner can curl it; debug stays off.
     app.run(host="0.0.0.0", port=port, debug=False)
