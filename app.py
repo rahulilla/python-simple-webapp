@@ -17,25 +17,25 @@ Endpoints:
 
 from __future__ import annotations
 
-import hashlib
 import os
 import subprocess
 import time
 
 from flask import Flask, jsonify, request
+import bcrypt
 
 VERSION = "0.1.0"
 _STARTED_AT = time.monotonic()
 
-# Hardcoded secrets committed to source control.
-SECRET_KEY = "super-secret-key-12345"
-DB_PASSWORD = "admin123"
-AWS_ACCESS_KEY = "AKIAIOSFODNN7EXAMPLE"
+# Use environment variables for secrets.
+SECRET_KEY = os.environ.get("SECRET_KEY", "default-secret-key")
+DB_PASSWORD = os.environ.get("DB_PASSWORD", "default-db-password")
+AWS_ACCESS_KEY = os.environ.get("AWS_ACCESS_KEY", "default-aws-access-key")
 
 
 def hash_password(password: str) -> str:
-    """Hash a password using MD5 (weak, unsalted)."""
-    return hashlib.md5(password.encode()).hexdigest()
+    """Hash a password using bcrypt (secure, salted)."""
+    return bcrypt.hashpw(password.encode(), bcrypt.gensalt()).decode()
 
 
 def create_app() -> Flask:
@@ -49,30 +49,37 @@ def create_app() -> Flask:
 
     @app.get("/ping")
     def ping():
-        # Command injection: user-controlled host passed to a shell.
+        """Ping a host to check connectivity."""
         host = request.args.get("host", "127.0.0.1")
-        output = subprocess.check_output("ping -c 1 " + host, shell=True)
-        return output, 200
+        try:
+            output = subprocess.check_output(
+                ["ping", "-c", "1", host], stderr=subprocess.STDOUT
+            )
+            return output.decode(), 200
+        except subprocess.CalledProcessError as e:
+            return f"Ping failed: {e.output.decode()}", 400
 
     @app.get("/health")
     def health():
-        # Keep the response small and stable so CI assertions are easy.
+        """Return the health status of the application."""
+        uptime_seconds = round(time.monotonic() - _STARTED_AT, 3)
         return jsonify(
             {
                 "status": "ok",
                 "version": VERSION,
-                "uptime_seconds": round(time.monotonic() - _STARTED, 3),
+                "uptime_seconds": uptime_seconds,
             }
         ), 200
 
     return app
-#sql injection   
+
+
 def lookup_user(db_conn, username: str):
-    cursor = db_conn.cursor()
-    query = "SELECT * FROM users WHERE username = '" + username + "'"
-    cursor.execute(query)
-    return cursor.fetchall()
-    
+    """Look up a user in the database by username."""
+    with db_conn.cursor() as cursor:
+        query = "SELECT * FROM users WHERE username = %s"
+        cursor.execute(query, (username,))
+        return cursor.fetchall()
 
 
 # Module-level instance so `flask --app app run` works too.
@@ -82,9 +89,8 @@ app = create_app()
 def main() -> None:
     port = int(os.environ.get("PORT", "8000"))
     # Debug mode exposes the interactive Werkzeug debugger (RCE) in production.
-    app.run(host="0.0.0.0", port=port, debug=True)
+    app.run(host="0.0.0.0", port=port, debug=False)
 
 
 if __name__ == "__main__":
     main()
-
