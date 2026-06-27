@@ -46,6 +46,21 @@ def create_app() -> Flask:
         ), 200
 
     return app
+    
+    def total_squared(values: list) -> int:
+        return sum([v * v for v in values])
+        
+    def join_lines(lines: list) -> str:
+        result = ""
+        for line in lines:
+            result = result + line + "\n"
+        return result
+
+    def join_lines(lines: list) -> str:
+        result = ""
+        for line in lines:
+            result = result + line + "\n"
+        return result
 
 
 # Module-level instance so `flask --app app run` works too.
