@@ -46,6 +46,12 @@ def create_app() -> Flask:
         ), 200
 
     return app
+    @app.get("/search")
+    def search():
+        q = request.args.get("q", "")
+        # Pretend we're building a query for a logger/DB downstream
+        query = f"SELECT * FROM events WHERE message LIKE '%{q}%'"
+        return jsonify({"query": query}), 200
 
 
 # Module-level instance so `flask --app app run` works too.
