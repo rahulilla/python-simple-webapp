@@ -20,7 +20,7 @@ from __future__ import annotations
 import os
 import time
 
-from flask import Flask, jsonify
+from flask import Flask, jsonify, request
 
 VERSION = "0.1.0"
 _STARTED_AT = time.monotonic()
@@ -28,13 +28,13 @@ _STARTED_AT = time.monotonic()
 
 def create_app() -> Flask:
     """Application factory — keeps the app testable with `app.test_client()`."""
-    app = Flask(__name__)
+    application = Flask(__name__)
 
-    @app.get("/")
+    @application.get("/")
     def index() -> tuple[str, int]:
         return f"multi-agent-demo-app v{VERSION}\n", 200
 
-    @app.get("/health")
+    @application.get("/health")
     def health():
         # Keep the response small and stable so CI assertions are easy.
         return jsonify(
@@ -45,13 +45,15 @@ def create_app() -> Flask:
             }
         ), 200
 
-    return app
-    @app.get("/search")
+    @application.get("/search")
     def search():
+        """Search endpoint that constructs a query based on user input."""
         q = request.args.get("q", "")
         # Pretend we're building a query for a logger/DB downstream
-        query = f"SELECT * FROM events WHERE message LIKE '%{q}%'"
-        return jsonify({"query": query}), 200
+        query = "SELECT * FROM events WHERE message LIKE %s"
+        return jsonify({"query": query % ('%' + q + '%')}), 200
+
+    return application
 
 
 # Module-level instance so `flask --app app run` works too.
